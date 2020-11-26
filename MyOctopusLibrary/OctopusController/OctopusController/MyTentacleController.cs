@@ -26,7 +26,6 @@ namespace OctopusController
         public Transform[] LoadTentacleJoints(Transform root, TentacleMode mode)
         {
             //TODO: add here whatever is needed to find the bones forming the tentacle for all modes
-            root.localEulerAngles = new Vector3(0, 180, 0);
             List<Transform> bones = new List<Transform>();
             Transform current = root;
 
@@ -54,7 +53,7 @@ namespace OctopusController
                         current = current.GetChild(1).transform;
                         bones.Add(current);
                     }
-                    _endEffectorSphere = current;
+                    _endEffectorSphere = current.parent.GetChild(0).transform;
                     bones.Remove(current);
                     //TODO: in _endEffectorsphere you keep a reference to the red sphere 
                     break;
