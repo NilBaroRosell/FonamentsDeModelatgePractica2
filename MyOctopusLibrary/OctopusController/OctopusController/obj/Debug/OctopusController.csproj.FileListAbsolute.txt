@@ -36,3 +36,21 @@ E:\Trabajo\Classes Enti\Practicas2019-20\delivery2-2019-20\MyOctopusLibrary\Octo
 E:\Trabajo\Classes Enti\Practicas2019-20\delivery2-2019-20\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.csproj.CopyComplete
 E:\Trabajo\Classes Enti\Practicas2019-20\delivery2-2019-20\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.dll
 E:\Trabajo\Classes Enti\Practicas2019-20\delivery2-2019-20\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.pdb
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\OctopusController.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\OctopusController.pdb
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.Cecil.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.SerializationLogic.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.DataContract.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\ExCSS.Unity.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.Legacy.NRefactory.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.UNetWeaver.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.CecilTools.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.Cecil.Pdb.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\Unity.Cecil.Mdb.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\UnityEditor.xml
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\bin\Debug\UnityEngine.xml
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.csprojAssemblyReference.cache
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.csproj.CoreCompileInputs.cache
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.csproj.CopyComplete
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.dll
+C:\Users\nbr19\Desktop\Fonaments de modelatge 2\FonamentsDeModelatgePractica2\MyOctopusLibrary\OctopusController\OctopusController\obj\Debug\OctopusController.pdb
