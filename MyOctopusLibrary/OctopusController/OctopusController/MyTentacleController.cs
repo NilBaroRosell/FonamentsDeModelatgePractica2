@@ -58,6 +58,19 @@ namespace OctopusController
                     _endEffectorSphere = current;
                     bones.Remove(current);
                     _bones = bones.ToArray();
+
+                    _base = _bones[0];
+                    theta = new float[_bones.Length];
+                    for (int i = 0; i < _bones.Length; i++)
+                        theta[i] = 0;
+
+                    startOffset = new Vector3[_bones.Length];
+                    for (int i = 1; i < startOffset.Length; i++)
+                        startOffset[i] = _bones[i].position - _bones[i - 1].position;
+
+                    distances = new float[_bones.Length - 1];
+                    for (int i = 0; i < _bones.Length - 1; i++)
+                        distances[i] = Vector3.Distance(_bones[i].position, _bones[i + 1].position);
                     //TODO: in _endEffectorsphere you keep a reference to the base of the leg
                     break;
                 case TentacleMode.TAIL:
@@ -70,6 +83,19 @@ namespace OctopusController
                     _endEffectorSphere = current.parent.GetChild(0).transform;
                     bones.Remove(current);
                     _bones = bones.ToArray();
+
+                    _base = _bones[0];
+                    theta = new float[_bones.Length];
+                    for (int i = 0; i < _bones.Length; i++)
+                        theta[i] = 0;
+
+                    startOffset = new Vector3[_bones.Length];
+                    for (int i = 1; i < startOffset.Length; i++)
+                        startOffset[i] = _bones[i].position - _bones[i - 1].position;
+
+                    distances = new float[_bones.Length - 1];
+                    for (int i = 0; i < _bones.Length - 1; i++)
+                        distances[i] = Vector3.Distance(_bones[i].position, _bones[i + 1].position);
                     //TODO: in _endEffectorsphere you keep a reference to the red sphere 
                     break;
                 case TentacleMode.TENTACLE:
@@ -81,16 +107,12 @@ namespace OctopusController
                     }
                     _endEffectorSphere = current;
                     bones.Remove(current);
-                    _bones = new Transform[bones.Count];
-                    for (int i = 0; i < _bones.Length; i++)
-                        _bones[i] = bones[i];
+                    _bones = bones.ToArray();
 
                     _base = _bones[0];
                     theta = new float[_bones.Length];
                     for (int i = 0; i < _bones.Length; i++)
                         theta[i] = 0;
-
-                    //SetAxis();
 
                     startOffset = new Vector3[_bones.Length];
                     for (int i = 1; i < startOffset.Length; i++)

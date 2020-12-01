@@ -29,16 +29,18 @@ namespace OctopusController
         float minDistance = 0.1f;
         int maxTriesCCD = 10;
 
-        float _twistMin, _twistMax;
-        float _swingMin, _swingMax;
+        float _twistMin;
+        float _twistMax;
+        float _swingMin;
+        float _swingMax;
 
         #region public methods
         //DO NOT CHANGE THE PUBLIC METHODS!!
 
-        public float TwistMin { set => _twistMin = value; }
-        public float TwistMax { set => _twistMax = value; }
-        public float SwingMin {  set => _swingMin = value; }
-        public float SwingMax { set => _swingMax = value; }
+        public float TwistMin { set => _twistMin = 0; }
+        public float TwistMax { set => _twistMax = 20; }
+        public float SwingMin {  set => _swingMin = 0; }
+        public float SwingMax { set => _swingMax = 5; }
         
 
         public void TestLogging(string objectName)
