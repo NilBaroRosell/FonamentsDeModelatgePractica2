@@ -23,7 +23,7 @@ namespace OctopusController
         int _tentacleToMove;
         bool moveTentacleToBall;
         bool retireTentacleFromBall;
-        float shotDuration = 1.0f;
+        float shotDuration = 3.0f;
         float shotTime;
 
         float minDistance = 0.1f;
@@ -97,6 +97,7 @@ namespace OctopusController
 
         public void NotifyShoot() {
             //TODO. what happens here?
+
             if (moveTentacleToBall)
             {
                 retireTentacleFromBall = true;
