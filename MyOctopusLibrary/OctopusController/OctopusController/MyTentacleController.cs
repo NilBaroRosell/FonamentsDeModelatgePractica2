@@ -20,7 +20,6 @@ namespace OctopusController
         Transform[] _bones;
         Transform _endEffectorSphere;
         Transform _base;
-        Vector3[] axis;
         Vector3[] startOffset;
 
         float[] theta;
@@ -126,25 +125,6 @@ namespace OctopusController
             }
             Debug.Log(root.gameObject.name + ": " + _bones.Length + "bones" + ", EndEffector: " + _endEffectorSphere.gameObject.name);
             return Bones;
-        }
-
-        void SetAxis()
-        {
-            axis = new Vector3[_bones.Length];
-
-            for (int i = 1; i < _bones.Length; i++)
-            {
-                int axisID = i % 2;
-                switch (axisID)
-                {
-                    case 0:
-                        axis[i] = Vector3.right;
-                        break;
-                    case 1:
-                        axis[i] = Vector3.forward;
-                        break;
-                }
-            }
         }
     }
 }
