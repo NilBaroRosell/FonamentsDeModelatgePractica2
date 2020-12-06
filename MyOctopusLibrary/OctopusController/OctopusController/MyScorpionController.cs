@@ -101,7 +101,7 @@ namespace OctopusController
 
         void update_gradient()
         {
-            Vector3 targetPosition = Vector3.Lerp(_tail.EndEffector.position, tailTarget.position, Time.deltaTime * speed);
+            //Vector3 targetPosition = Vector3.Lerp(_tail.EndEffector.position, tailTarget.position, Time.deltaTime * speed);
 
             //Debug.Log(targetPosition);
 
@@ -110,7 +110,7 @@ namespace OctopusController
 
             if (!done)
             {
-                _tail.ApproachTarget(targetPosition);
+                _tail.ApproachTarget(tailTarget.position);
             }
         }
 

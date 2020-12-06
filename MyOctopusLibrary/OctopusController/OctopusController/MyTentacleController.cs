@@ -77,7 +77,7 @@ namespace OctopusController
                         bones.Add(current);
                     }
                     _endEffectorSphere = current;
-                    bones.Remove(current);
+                    //bones.Remove(current);
                     _bones = bones.ToArray();
                     _base = _bones[0];
 
@@ -128,7 +128,7 @@ namespace OctopusController
                     //TODO: in _endEffectorphere you  keep a reference to the sphere with a collider attached to the endEffector
                     break;
             }
-            //Debug.Log(root.gameObject.name + ": " + _bones.Length + "bones" + ", EndEffector: " + _endEffectorSphere.gameObject.name);
+            Debug.Log(root.gameObject.name + ": " + _bones.Length + "bones" + ", EndEffector: " + _endEffectorSphere.gameObject.name);
             return Bones;
         }
 
@@ -136,6 +136,7 @@ namespace OctopusController
         {
             axis = new Vector3[]
             {
+                Vector3.right,
                 Vector3.right,
                 Vector3.right,
                 Vector3.right,
