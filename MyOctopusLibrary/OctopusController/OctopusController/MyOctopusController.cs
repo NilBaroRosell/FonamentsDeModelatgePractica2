@@ -59,7 +59,6 @@ namespace OctopusController
             // foreach (Transform t in tentacleRoots)
             for(int i = 0;  i  < tentacleRoots.Length; i++)
             {
-                Debug.Log(tentacleRoots[i].gameObject.name);
                 _tentacles[i] = new MyTentacleController();
                 _tentacles[i].LoadTentacleJoints(tentacleRoots[i],TentacleMode.TENTACLE);
                 //i++;
