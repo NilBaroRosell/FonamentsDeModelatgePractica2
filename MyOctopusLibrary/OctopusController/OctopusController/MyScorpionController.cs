@@ -15,8 +15,7 @@ namespace OctopusController
         Transform tailEndEffector;
         MyTentacleController _tail;
         float animationRange = 1.0f;
-        float minDist = 0.1f;
-        float speed = 5;
+        float minDist = 0.02f;
 
         //LEGS
         Transform[] legTargets;
@@ -43,16 +42,12 @@ namespace OctopusController
             _tail = new MyTentacleController();
             _tail.LoadTentacleJoints(TailBase, TentacleMode.TAIL);
             tailEndEffector = _tail.EndEffector;
-            Vector3 targetPosition = _tail.ForwardKinematics();
-            /*targetPosition = Vector3.Lerp(_tail.EndEffector.position, targetPosition, Time.deltaTime * speed);
-            _tail.ApproachTarget(targetPosition);*/
             //TODO: Initialize anything needed for the Gradient Descent implementation
         }
 
         //TODO: Check when to start the animation towards target and implement Gradient Descent method to move the joints.
         public void NotifyTailTarget(Transform target)
         {
-            //guardar posicio de la bola
             tailTarget = target;
         }
 
@@ -81,17 +76,10 @@ namespace OctopusController
         //TODO: implement Gradient Descent method to move tail if necessary
         private void updateTail()
         {
-            //Debug.Log(tailTarget.position);
-
-            //Debug.Log(Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position));
-            //Debug.Log(Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < animationRange);
             if (Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < animationRange)
             {
-                //Debug.Log("ENTRAAAAAAAAAAAAAAAAA");
                 update_gradient();
             }
-            //si la posicio de la bola respecte l'endeffector de la cua es menor que tailDistance
-            //update gradient decent
         }
         //TODO: implement fabrik method to move legs 
         private void updateLegs()
@@ -101,11 +89,6 @@ namespace OctopusController
 
         void update_gradient()
         {
-            //Vector3 targetPosition = Vector3.Lerp(_tail.EndEffector.position, tailTarget.position, Time.deltaTime * speed);
-
-            //Debug.Log(targetPosition);
-
-            //Comprovem si la distància entre l'end effector i el target es es inferior a minDistance
             bool done = Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < minDist;
 
             if (!done)

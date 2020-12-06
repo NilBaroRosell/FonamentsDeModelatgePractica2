@@ -25,12 +25,11 @@ namespace OctopusController
         Vector3[] initRotation;
 
         float delta = 0.1f;
-        float learningRate = 10f;
+        float learningRate = 50f;
 
         float[] theta;
         Vector3 targetPositionCCD;
         int currentTries;
-        float[] distances;
 
         public Transform[] Bones { get => _bones; }
         public Transform EndEffector { get => _endEffectorSphere; }
@@ -60,7 +59,6 @@ namespace OctopusController
                         bones.Add(current);
                     }
                     _endEffectorSphere = current;
-                    bones.Remove(current);
                     _bones = bones.ToArray();
 
                     _base = _bones[0];
@@ -77,7 +75,6 @@ namespace OctopusController
                         bones.Add(current);
                     }
                     _endEffectorSphere = current;
-                    //bones.Remove(current);
                     _bones = bones.ToArray();
                     _base = _bones[0];
 
@@ -89,7 +86,7 @@ namespace OctopusController
                     {
                         initRotation[i] = _bones[i].localEulerAngles;
                         theta[i] = 0;
-                        SetAngle(theta[i], i);
+                        SetDefaultAngle(theta[i], i);
                     }
 
                     startOffset = new Vector3[_bones.Length];
@@ -106,7 +103,7 @@ namespace OctopusController
                         {
                             theta[i] = initRotation[i].x;
                         }
-                        SetAngle(theta[i], i);
+                        _bones[i].localEulerAngles = initRotation[i];
                     }
                     //TODO: in _endEffectorsphere you keep a reference to the red sphere 
                     break;
@@ -118,7 +115,6 @@ namespace OctopusController
                         bones.Add(current);
                     }
                     _endEffectorSphere = current;
-                    bones.Remove(current);
                     _bones = bones.ToArray();
 
                     _base = _bones[0];
@@ -128,7 +124,6 @@ namespace OctopusController
                     //TODO: in _endEffectorphere you  keep a reference to the sphere with a collider attached to the endEffector
                     break;
             }
-            Debug.Log(root.gameObject.name + ": " + _bones.Length + "bones" + ", EndEffector: " + _endEffectorSphere.gameObject.name);
             return Bones;
         }
 
@@ -136,8 +131,8 @@ namespace OctopusController
         {
             axis = new Vector3[]
             {
-                Vector3.right,
-                Vector3.right,
+                Vector3.forward,
+                Vector3.forward,
                 Vector3.right,
                 Vector3.right,
                 Vector3.right,
@@ -153,6 +148,10 @@ namespace OctopusController
             for (int i = 1; i < _bones.Length; i++)
             {
                 rotation *=  Quaternion.AngleAxis(theta[i - 1], axis[i - 1]);
+                if(axis[i-1] == Vector3.forward)
+                {
+                    rotation *= Quaternion.AngleAxis(initRotation[i-1].x, Vector3.right);
+                }
                 Vector3 nextPoint = prevPoint + rotation * startOffset[i];
                 Debug.DrawLine(prevPoint, nextPoint, Color.blue);
 
@@ -185,7 +184,6 @@ namespace OctopusController
 
         public void ApproachTarget(Vector3 target)
         {
-            Debug.Log(target);
             for (int i = 0; i < _bones.Length - 1; i++)
             {
                 theta[i] -= learningRate * CalculateGradient(target, i);
@@ -195,13 +193,18 @@ namespace OctopusController
                 SetAngle(theta[i], i);
         }
 
+        void SetDefaultAngle(float angle, int i)
+        {
+            _bones[i].localEulerAngles = axis[i] * angle;
+        }
+
         void SetAngle(float angle, int i)
         {
-            /*if (axis[i] == -Vector3.right)
-                _bones[i].localEulerAngles = initRotation[i] + Vector3.right * angle;
-            else if (axis[i] == Vector3.forward)
-                _bones[i].localEulerAngles = initRotation[i] + Vector3.forward * angle;*/
             _bones[i].localEulerAngles = axis[i] * angle;
+            if(axis[i] == Vector3.forward)
+            {
+                _bones[i].localEulerAngles += new Vector3(initRotation[i].x, 0, 0);
+            }
         }
     }
 }
