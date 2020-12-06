@@ -16,6 +16,8 @@ namespace OctopusController
         MyTentacleController _tail;
         float animationRange = 1.0f;
         float minDist = 0.02f;
+        float delta = 0.1f;
+        float learningRate = 50f;
 
         //LEGS
         Transform[] legTargets;
@@ -93,7 +95,7 @@ namespace OctopusController
 
             if (!done)
             {
-                _tail.ApproachTarget(tailTarget.position);
+                ApproachTarget(tailTarget.position);
             }
         }
 
@@ -102,5 +104,68 @@ namespace OctopusController
 
         }
         #endregion
+
+        void SetAngle(float angle, int i)
+        {
+            _tail.Joints[i].localEulerAngles = _tail.Axis[i] * angle;
+            if (_tail.Axis[i] == Vector3.forward)
+            {
+                _tail.Joints[i].localEulerAngles += new Vector3(_tail.InitRotation[i].x, 0, 0);
+            }
+        }
+
+
+        public Vector3 ForwardKinematics()
+        {
+            Vector3 prevPoint = _tail.Base.position;
+            Quaternion rotation = Quaternion.identity;
+
+            for (int i = 1; i < _tail.Joints.Length; i++)
+            {
+                rotation *= Quaternion.AngleAxis(_tail.Theta[i - 1], _tail.Axis[i - 1]);
+                if (_tail.Axis[i - 1] == Vector3.forward)
+                {
+                    rotation *= Quaternion.AngleAxis(_tail.InitRotation[i - 1].x, Vector3.right);
+                }
+                Vector3 nextPoint = prevPoint + rotation * _tail.StartOffset[i];
+                Debug.DrawLine(prevPoint, nextPoint, Color.blue);
+
+                prevPoint = nextPoint;
+            }
+
+            return prevPoint;
+        }
+
+        public float DistanceFromTarget(Vector3 target)
+        {
+            Vector3 point = ForwardKinematics();
+            return Vector3.Distance(point,target);
+        }
+
+        public float CalculateGradient(Vector3 target, int num)
+        {
+            float solutionAngle = _tail.Theta[num];
+
+            float f_x = DistanceFromTarget(target);
+            _tail.Theta[num] += delta;
+            float f_x_plus_h = DistanceFromTarget(target);
+
+            float gradient = (f_x_plus_h - f_x) / delta;
+
+            _tail.Theta[num] = solutionAngle;
+
+            return gradient;
+        }
+
+        public void ApproachTarget(Vector3 target)
+        {
+            for (int i = 0; i < _tail.Joints.Length - 1; i++)
+            {
+                _tail.Theta[i] -= learningRate * CalculateGradient(target, i);
+            }
+
+            for (int i = 0; i < _tail.Joints.Length - 1; i++)
+                SetAngle(_tail.Theta[i], i);
+        }
     }
 }

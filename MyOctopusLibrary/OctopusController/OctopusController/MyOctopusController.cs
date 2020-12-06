@@ -45,11 +45,7 @@ namespace OctopusController
 
         public void TestLogging(string objectName)
         {
-
-           
             Debug.Log(objectName + " is Paul the Octopus");
-
-            
         }
 
         public void Init(Transform[] tentacleRoots, Transform[] randomTargets)
@@ -61,7 +57,6 @@ namespace OctopusController
             {
                 _tentacles[i] = new MyTentacleController();
                 _tentacles[i].LoadTentacleJoints(tentacleRoots[i],TentacleMode.TENTACLE);
-                //i++;
                 //TODO: initialize any variables needed in ccd
             }
 
@@ -121,11 +116,6 @@ namespace OctopusController
         #region private and internal methods
         //todo: add here anything that you need
 
-        /*void update_ccd() {
-           
-
-        }*/
-
         //Aquesta funció retorna la descomposició del swing i twist del Quaternion rotation en un deteminat eix direction
         void swing_twist_decomposition(Quaternion rotation, Vector3 direction, out Quaternion swing, out Quaternion twist)
         {
@@ -174,12 +164,12 @@ namespace OctopusController
                 {
                     if (_tentacles[i].CurrentTries <= maxTriesCCD)
                     {
-                        for (int j = _tentacles[i].Bones.Length - 2; j >= 0; j--)
+                        for (int j = _tentacles[i].Joints.Length - 2; j >= 0; j--)
                         {
                             //Vector desde la posició del current joint fins al end effector
-                            Vector3 currentToEnd = _tentacles[i].EndEffector.position - _tentacles[i].Bones[j].position;
+                            Vector3 currentToEnd = _tentacles[i].EndEffector.position - _tentacles[i].Joints[j].position;
                             //Vector desde current joint fins al target
-                            Vector3 currentToTarget = targetPosition - _tentacles[i].Bones[j].position;
+                            Vector3 currentToTarget = targetPosition - _tentacles[i].Joints[j].position;
 
                             //Eix de rotació
                             Vector3 axis = Vector3.Cross(currentToEnd, currentToTarget);
@@ -207,32 +197,32 @@ namespace OctopusController
                                 //No apliquem constraints
                                 if (_swingMax > 45)
                                 {
-                                    _tentacles[i].Bones[j].rotation = q * _tentacles[i].Bones[j].rotation;
+                                    _tentacles[i].Joints[j].rotation = q * _tentacles[i].Joints[j].rotation;
                                 }
                                 //Apliquem constraints
                                 else
                                 {
                                     //Descomposem la rotació calculada
-                                    swing_twist_decomposition(q, _tentacles[i].Bones[j].up, out swing, out twist);
+                                    swing_twist_decomposition(q, _tentacles[i].Joints[j].up, out swing, out twist);
 
                                     //Si el current join té un parent (no és la base)
                                     if (j != 0)
                                     {
                                         ///CONSTRAINTS SWING
                                         // Calculem la rotació que fariem sense restriccions
-                                        Quaternion qAux = swing * _tentacles[i].Bones[j].rotation;
+                                        Quaternion qAux = swing * _tentacles[i].Joints[j].rotation;
 
                                         // Mirem l'angle entre aquesta rotació sense restriccions i la rotació del parent
-                                        float angle = Quaternion.Angle(qAux, _tentacles[i].Bones[j - 1].rotation);
+                                        float angle = Quaternion.Angle(qAux, _tentacles[i].Joints[j - 1].rotation);
                                         if (angle < 1)
                                             angle = 1;
 
                                         // Rotem el joint per facilitar trobar l'eix de rotació
-                                        _tentacles[i].Bones[j].rotation = swing * _tentacles[i].Bones[j].rotation;
-                                        Vector3 auxAxis = Vector3.Cross(_tentacles[i].Bones[j - 1].up, _tentacles[i].Bones[j].up);
+                                        _tentacles[i].Joints[j].rotation = swing * _tentacles[i].Joints[j].rotation;
+                                        Vector3 auxAxis = Vector3.Cross(_tentacles[i].Joints[j - 1].up, _tentacles[i].Joints[j].up);
 
                                         // Revertim la rotació anterior un cop hem guardat l'eix
-                                        _tentacles[i].Bones[j].rotation = Quaternion.Inverse(swing) * _tentacles[i].Bones[j].rotation;
+                                        _tentacles[i].Joints[j].rotation = Quaternion.Inverse(swing) * _tentacles[i].Joints[j].rotation;
 
                                         // Apliquem la restricció d'angle
                                         angle = Mathf.Clamp(angle, _swingMin, _swingMax);
@@ -241,18 +231,18 @@ namespace OctopusController
 
                                         ///CONSTRAINTS TWIST
                                         // Calculem la rotació que fariem sense restriccions
-                                        _tentacles[i].Bones[j].rotation = twist * _tentacles[i].Bones[j].rotation;
+                                        _tentacles[i].Joints[j].rotation = twist * _tentacles[i].Joints[j].rotation;
 
                                         //Rotem fins a la rotació del parent i ens quedem només amb el swing
-                                        float tAngle = Vector3.Angle(_tentacles[i].Bones[j].up, _tentacles[i].Bones[j - 1].up);
-                                        Vector3 tAxis = Vector3.Cross(_tentacles[i].Bones[j].up, _tentacles[i].Bones[j - 1].up);
+                                        float tAngle = Vector3.Angle(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
+                                        Vector3 tAxis = Vector3.Cross(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
                                         Quaternion tRot = Quaternion.AngleAxis(tAngle, tAxis);
                                         Quaternion tAux, sAux;
-                                        swing_twist_decomposition(tRot, _tentacles[i].Bones[j - 1].up, out sAux, out tAux);
-                                        _tentacles[i].Bones[j].rotation = sAux * _tentacles[i].Bones[j].rotation;
+                                        swing_twist_decomposition(tRot, _tentacles[i].Joints[j - 1].up, out sAux, out tAux);
+                                        _tentacles[i].Joints[j].rotation = sAux * _tentacles[i].Joints[j].rotation;
 
                                         //Calculem l'angle entre els right
-                                        float rAngle = Vector3.Angle(_tentacles[i].Bones[j].right, _tentacles[i].Bones[j - 1].right);
+                                        float rAngle = Vector3.Angle(_tentacles[i].Joints[j].right, _tentacles[i].Joints[j - 1].right);
                                         if (rAngle < 1)
                                             rAngle = 1;
 
@@ -260,16 +250,16 @@ namespace OctopusController
                                         rAngle = Mathf.Clamp(rAngle, _twistMin, _twistMax);
 
                                         //Revertir a la rotació original aplicant el nou twist
-                                        tAux = Quaternion.AngleAxis(rAngle, _tentacles[i].Bones[j - 1].up);
+                                        tAux = Quaternion.AngleAxis(rAngle, _tentacles[i].Joints[j - 1].up);
 
                                         // Rotem el joint amb l'angle restringit respecte al seu parent
-                                        _tentacles[i].Bones[j].rotation = tAux * newSwing * _tentacles[i].Bones[j - 1].rotation;
+                                        _tentacles[i].Joints[j].rotation = tAux * newSwing * _tentacles[i].Joints[j - 1].rotation;
 
 
                                     }
                                     else
                                     {
-                                        _tentacles[i].Bones[j].rotation = swing * _tentacles[i].Bones[j].rotation;
+                                        _tentacles[i].Joints[j].rotation = swing * _tentacles[i].Joints[j].rotation;
                                     }
                                 }
 
