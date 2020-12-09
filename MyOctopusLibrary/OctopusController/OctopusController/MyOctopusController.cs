@@ -9,43 +9,40 @@ namespace OctopusController
 {
     public enum TentacleMode { LEG, TAIL, TENTACLE };
 
-    public class MyOctopusController 
+    public class MyOctopusController
     {
-        
-        MyTentacleController[] _tentacles =new  MyTentacleController[4];
 
-        Transform _currentRegion;
+        MyTentacleController[] _tentacles = new MyTentacleController[4];
         Transform _target;
 
         Transform[] _randomTargets = new Transform[4];
 
 
-        int _tentacleToMove;
-        bool moveTentacleToBall;
-        bool retireTentacleFromBall;
+        int activatedTentacle;
+        bool activateTentacle;
         float shotDuration = 3.0f;
         float shotTime;
 
         float minDistance = 0.1f;
         int maxTriesCCD = 10;
 
-        float _twistMin;
-        float _twistMax;
-        float _swingMin;
-        float _swingMax;
+        float minTwist;
+        float maxTwist;
+        float minSwing;
+        float maxSwing;
 
         #region public methods
         //DO NOT CHANGE THE PUBLIC METHODS!!
 
-        public float TwistMin { set => _twistMin = 0; }
-        public float TwistMax { set => _twistMax = 20; }
-        public float SwingMin {  set => _swingMin = 0; }
-        public float SwingMax { set => _swingMax = 5; }
-        
+        public float TwistMin { set => minTwist = 0; }
+        public float TwistMax { set => maxTwist = 20; }
+        public float SwingMin { set => minSwing = 0; }
+        public float SwingMax { set => maxSwing = 8; }
+
 
         public void TestLogging(string objectName)
         {
-            Debug.Log(objectName + " is Paul the Octopus");
+            Debug.Log(objectName + "is Paul the Octopus");
         }
 
         public void Init(Transform[] tentacleRoots, Transform[] randomTargets)
@@ -53,10 +50,10 @@ namespace OctopusController
             _tentacles = new MyTentacleController[tentacleRoots.Length];
 
             // foreach (Transform t in tentacleRoots)
-            for(int i = 0;  i  < tentacleRoots.Length; i++)
+            for (int i = 0; i < tentacleRoots.Length; i++)
             {
                 _tentacles[i] = new MyTentacleController();
-                _tentacles[i].LoadTentacleJoints(tentacleRoots[i],TentacleMode.TENTACLE);
+                _tentacles[i].LoadTentacleJoints(tentacleRoots[i], TentacleMode.TENTACLE);
                 //TODO: initialize any variables needed in ccd
             }
 
@@ -65,38 +62,32 @@ namespace OctopusController
 
         }
 
-              
+
         public void NotifyTarget(Transform target, Transform region)
         {
-            _currentRegion = region;
-
             switch (region.name)
             {
                 case "region1":
-                    _tentacleToMove = 0;
+                    activatedTentacle = 0;
                     break;
                 case "region2":
-                    _tentacleToMove = 1;
+                    activatedTentacle = 1;
                     break;
                 case "region3":
-                    _tentacleToMove = 2;
+                    activatedTentacle = 2;
                     break;
                 case "region4":
-                    _tentacleToMove = 3;
+                    activatedTentacle = 3;
                     break;
             }
 
             _target = target;
         }
 
-        public void NotifyShoot() {
+        public void NotifyShoot()
+        {
             //TODO. what happens here?
-
-            if (moveTentacleToBall)
-            {
-                retireTentacleFromBall = true;
-            }
-            moveTentacleToBall = true;
+            activateTentacle = true;
             shotTime = Time.time;
         }
 
@@ -122,10 +113,10 @@ namespace OctopusController
             //Calculem l'eix de rotació rotationAxis
             Vector3 rotationAxis = new Vector3(rotation.x, rotation.y, rotation.z);
             //Calculem la projecció del vector de l'eix de rotacio rotationAxis al eix direction
-            Vector3 p = Vector3.Project(rotationAxis, direction);
+            Vector3 pos = Vector3.Project(rotationAxis, direction);
 
             //Descomposem el twist i el swing
-            twist = new Quaternion(p.x, p.y, p.z, rotation.w);
+            twist = new Quaternion(pos.x, pos.y, pos.z, rotation.w);
             twist = twist.normalized;
             swing = rotation * Quaternion.Inverse(twist);
         }
@@ -139,13 +130,13 @@ namespace OctopusController
                 Vector3 targetPosition = _randomTargets[i].position;
 
                 //Si el tentacle que estem recorrent és el que es troba la pilota i hem rebut el input de xutar
-                if (i == _tentacleToMove && moveTentacleToBall)
+                if (i == activatedTentacle && activateTentacle)
                 {
                     //Posem que el target sigui on xutem la pilota
                     targetPosition = Vector3.Lerp(_tentacles[i].EndEffector.position, _target.position, (Time.time - shotTime) / shotDuration);
                     if ((Time.time - shotTime) / shotDuration >= 1)
                     {
-                        moveTentacleToBall = false;
+                        activateTentacle = false;
                     }
                 }
 
@@ -157,33 +148,31 @@ namespace OctopusController
                 }
 
                 //Comprovem si la distància entre l'end effector i el target es es inferior a minDistance
-                bool done = Vector3.Distance(_tentacles[i].EndEffector.position, targetPosition) < minDistance;
-
                 //Si la distància és major que minDistance
-                if (!done)
+                if (!(Vector3.Distance(_tentacles[i].EndEffector.position, targetPosition) < minDistance))
                 {
                     if (_tentacles[i].CurrentTries <= maxTriesCCD)
                     {
                         for (int j = _tentacles[i].Joints.Length - 2; j >= 0; j--)
                         {
                             //Vector desde la posició del current joint fins al end effector
-                            Vector3 currentToEnd = _tentacles[i].EndEffector.position - _tentacles[i].Joints[j].position;
+                            Vector3 currentJointToEnd = _tentacles[i].EndEffector.position - _tentacles[i].Joints[j].position;
                             //Vector desde current joint fins al target
-                            Vector3 currentToTarget = targetPosition - _tentacles[i].Joints[j].position;
+                            Vector3 currentJointToTarget = targetPosition - _tentacles[i].Joints[j].position;
 
                             //Eix de rotació
-                            Vector3 axis = Vector3.Cross(currentToEnd, currentToTarget);
+                            Vector3 rotationAxis = Vector3.Cross(currentJointToEnd, currentJointToTarget);
 
                             //Comprovem que els vectors no siguin paral·lels o molt semblants
-                            if (Vector3.Angle(currentToEnd, currentToTarget) < 175.0f)
+                            if (Vector3.Angle(currentJointToEnd, currentJointToTarget) < 175.0f)
                             {
-                                axis.Normalize();
+                                rotationAxis.Normalize();
 
                                 //Calculem l'angle desitjat
-                                if (currentToEnd.magnitude * currentToTarget.magnitude <= 0.001f)
+                                if (currentJointToEnd.magnitude * currentJointToTarget.magnitude <= 0.001f)
                                     Debug.Log("ERROR");
                                 else
-                                    _tentacles[i].Theta[j] = Mathf.Acos(Vector3.Dot(currentToEnd, currentToTarget) / (currentToEnd.magnitude * currentToTarget.magnitude));
+                                    _tentacles[i].Theta[j] = Mathf.Acos(Vector3.Dot(currentJointToEnd, currentJointToTarget) / (currentJointToEnd.magnitude * currentJointToTarget.magnitude));
 
                                 if (Mathf.Sin(_tentacles[i].Theta[j]) < 0)
                                     _tentacles[i].Theta[j] = 2 * Mathf.PI + _tentacles[i].Theta[j];
@@ -192,28 +181,28 @@ namespace OctopusController
                                 _tentacles[i].Theta[j] *= Mathf.Rad2Deg;
 
                                 Quaternion swing, twist;
-                                Quaternion q = Quaternion.AngleAxis(_tentacles[i].Theta[j], axis);
+                                Quaternion quat = Quaternion.AngleAxis(_tentacles[i].Theta[j], rotationAxis);
 
                                 //No apliquem constraints
-                                if (_swingMax > 45)
+                                if (maxSwing > 45)
                                 {
-                                    _tentacles[i].Joints[j].rotation = q * _tentacles[i].Joints[j].rotation;
+                                    _tentacles[i].Joints[j].rotation = quat * _tentacles[i].Joints[j].rotation;
                                 }
                                 //Apliquem constraints
                                 else
                                 {
                                     //Descomposem la rotació calculada
-                                    swing_twist_decomposition(q, _tentacles[i].Joints[j].up, out swing, out twist);
+                                    swing_twist_decomposition(quat, _tentacles[i].Joints[j].up, out swing, out twist);
 
                                     //Si el current join té un parent (no és la base)
                                     if (j != 0)
                                     {
                                         ///CONSTRAINTS SWING
                                         // Calculem la rotació que fariem sense restriccions
-                                        Quaternion qAux = swing * _tentacles[i].Joints[j].rotation;
+                                        Quaternion auxQuat = swing * _tentacles[i].Joints[j].rotation;
 
                                         // Mirem l'angle entre aquesta rotació sense restriccions i la rotació del parent
-                                        float angle = Quaternion.Angle(qAux, _tentacles[i].Joints[j - 1].rotation);
+                                        float angle = Quaternion.Angle(auxQuat, _tentacles[i].Joints[j - 1].rotation);
                                         if (angle < 1)
                                             angle = 1;
 
@@ -225,7 +214,7 @@ namespace OctopusController
                                         _tentacles[i].Joints[j].rotation = Quaternion.Inverse(swing) * _tentacles[i].Joints[j].rotation;
 
                                         // Apliquem la restricció d'angle
-                                        angle = Mathf.Clamp(angle, _swingMin, _swingMax);
+                                        angle = Mathf.Clamp(angle, minSwing, maxSwing);
                                         Quaternion newSwing = Quaternion.AngleAxis(angle, auxAxis);
 
 
@@ -234,26 +223,26 @@ namespace OctopusController
                                         _tentacles[i].Joints[j].rotation = twist * _tentacles[i].Joints[j].rotation;
 
                                         //Rotem fins a la rotació del parent i ens quedem només amb el swing
-                                        float tAngle = Vector3.Angle(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
-                                        Vector3 tAxis = Vector3.Cross(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
-                                        Quaternion tRot = Quaternion.AngleAxis(tAngle, tAxis);
-                                        Quaternion tAux, sAux;
-                                        swing_twist_decomposition(tRot, _tentacles[i].Joints[j - 1].up, out sAux, out tAux);
-                                        _tentacles[i].Joints[j].rotation = sAux * _tentacles[i].Joints[j].rotation;
+                                        float twistAngle = Vector3.Angle(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
+                                        Vector3 twistAxis = Vector3.Cross(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
+                                        Quaternion twistRotation = Quaternion.AngleAxis(twistAngle, twistAxis);
+                                        Quaternion twistAuxQuat, swingAuxQuat;
+                                        swing_twist_decomposition(twistRotation, _tentacles[i].Joints[j - 1].up, out swingAuxQuat, out twistAuxQuat);
+                                        _tentacles[i].Joints[j].rotation = swingAuxQuat * _tentacles[i].Joints[j].rotation;
 
                                         //Calculem l'angle entre els right
-                                        float rAngle = Vector3.Angle(_tentacles[i].Joints[j].right, _tentacles[i].Joints[j - 1].right);
-                                        if (rAngle < 1)
-                                            rAngle = 1;
+                                        float rightAngle = Vector3.Angle(_tentacles[i].Joints[j].right, _tentacles[i].Joints[j - 1].right);
+                                        if (rightAngle < 1)
+                                            rightAngle = 1;
 
                                         //Apliquem restricció d'angle
-                                        rAngle = Mathf.Clamp(rAngle, _twistMin, _twistMax);
+                                        rightAngle = Mathf.Clamp(rightAngle, minTwist, maxTwist);
 
                                         //Revertir a la rotació original aplicant el nou twist
-                                        tAux = Quaternion.AngleAxis(rAngle, _tentacles[i].Joints[j - 1].up);
+                                        twistAuxQuat = Quaternion.AngleAxis(rightAngle, _tentacles[i].Joints[j - 1].up);
 
                                         // Rotem el joint amb l'angle restringit respecte al seu parent
-                                        _tentacles[i].Joints[j].rotation = tAux * newSwing * _tentacles[i].Joints[j - 1].rotation;
+                                        _tentacles[i].Joints[j].rotation = twistAuxQuat * newSwing * _tentacles[i].Joints[j - 1].rotation;
 
 
                                     }
@@ -264,10 +253,6 @@ namespace OctopusController
                                 }
 
 
-                            }
-                            else
-                            {
-                                Debug.Log("ERROR CROSS = 0");
                             }
                         }
 

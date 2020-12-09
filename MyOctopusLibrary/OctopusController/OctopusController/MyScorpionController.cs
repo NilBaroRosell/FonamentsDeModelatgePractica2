@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace OctopusController
 {
-  
+
     public class MyScorpionController
     {
         //TAIL
@@ -20,17 +20,15 @@ namespace OctopusController
         float learningRate = 50f;
 
         //LEGS
-        Transform[] legTargets;
-        Transform[] legFutureBases;
         MyTentacleController[] _legs = new MyTentacleController[6];
 
-        
+
         #region public
-        public void InitLegs(Transform[] LegRoots,Transform[] LegFutureBases, Transform[] LegTargets)
+        public void InitLegs(Transform[] LegRoots, Transform[] LegFutureBases, Transform[] LegTargets)
         {
             _legs = new MyTentacleController[LegRoots.Length];
             //Legs init
-            for(int i = 0; i < LegRoots.Length; i++)
+            for (int i = 0; i < LegRoots.Length; i++)
             {
                 _legs[i] = new MyTentacleController();
                 _legs[i].LoadTentacleJoints(LegRoots[i], TentacleMode.LEG);
@@ -91,9 +89,7 @@ namespace OctopusController
 
         void update_gradient()
         {
-            bool done = Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < minDist;
-
-            if (!done)
+            if (!(Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < minDist))
             {
                 ApproachTarget(tailTarget.position);
             }
@@ -139,7 +135,7 @@ namespace OctopusController
         public float DistanceFromTarget(Vector3 target)
         {
             Vector3 point = ForwardKinematics();
-            return Vector3.Distance(point,target);
+            return Vector3.Distance(point, target);
         }
 
         public float CalculateGradient(Vector3 target, int num)
