@@ -15,7 +15,7 @@ namespace OctopusController
         Transform tailEndEffector;
         MyTentacleController _tail;
         float animationRange = 1.0f;
-        float minDist = 0.02f;
+        float minDistance = 0.02f;
         float delta = 0.1f;
         float learningRate = 50f;
 
@@ -89,7 +89,8 @@ namespace OctopusController
 
         void update_gradient()
         {
-            if (!(Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) < minDist))
+            //If the distance between the end effector and the tails' target is larger or equal to minDistance 
+            if (Vector3.Distance(tailEndEffector.transform.position, tailTarget.transform.position) >= minDistance)
             {
                 ApproachTarget(tailTarget.position);
             }
@@ -101,16 +102,20 @@ namespace OctopusController
         }
         #endregion
 
+        //Apply the new rotations
         void SetAngle(float angle, int i)
         {
+            //Apply the new rotation
             _tail.Joints[i].localEulerAngles = _tail.Axis[i] * angle;
+            //If the rotation axis is the forward one
             if (_tail.Axis[i] == Vector3.forward)
             {
+                //Apply the initial rotation in the X axis
                 _tail.Joints[i].localEulerAngles += new Vector3(_tail.InitRotation[i].x, 0, 0);
             }
         }
 
-
+        //Get the endEffector's position and draw all the joints
         public Vector3 ForwardKinematics()
         {
             Vector3 prevPoint = _tail.Base.position;
@@ -118,48 +123,57 @@ namespace OctopusController
 
             for (int i = 1; i < _tail.Joints.Length; i++)
             {
+                //Take the initial position of the previous point into account
                 rotation *= Quaternion.AngleAxis(_tail.Theta[i - 1], _tail.Axis[i - 1]);
                 if (_tail.Axis[i - 1] == Vector3.forward)
                 {
                     rotation *= Quaternion.AngleAxis(_tail.InitRotation[i - 1].x, Vector3.right);
                 }
+                //Calculate the next point
                 Vector3 nextPoint = prevPoint + rotation * _tail.StartOffset[i];
                 Debug.DrawLine(prevPoint, nextPoint, Color.blue);
-
+                //Set the previous point to the next point
                 prevPoint = nextPoint;
             }
 
             return prevPoint;
         }
 
+        //Calculate the distance between the end effector and the target
         public float DistanceFromTarget(Vector3 target)
         {
             Vector3 point = ForwardKinematics();
             return Vector3.Distance(point, target);
         }
 
+       //Calculates the gradient
         public float CalculateGradient(Vector3 target, int num)
         {
+            //Store the current angle
             float solutionAngle = _tail.Theta[num];
-
+            //Calculate the distance to the target
             float f_x = DistanceFromTarget(target);
+            //Adds the delta to the angle
             _tail.Theta[num] += delta;
+            //Calculates the new distance to the target
             float f_x_plus_h = DistanceFromTarget(target);
-
+            //Calculates the gradient value
             float gradient = (f_x_plus_h - f_x) / delta;
-
+            //Restore the initial current angle
             _tail.Theta[num] = solutionAngle;
 
             return gradient;
         }
 
+        //Rotate the joints to aproach the target
         public void ApproachTarget(Vector3 target)
         {
+            //Calculate the gradient for each joint
             for (int i = 0; i < _tail.Joints.Length - 1; i++)
             {
                 _tail.Theta[i] -= learningRate * CalculateGradient(target, i);
             }
-
+            //Apply the new rotation for each joint
             for (int i = 0; i < _tail.Joints.Length - 1; i++)
                 SetAngle(_tail.Theta[i], i);
         }

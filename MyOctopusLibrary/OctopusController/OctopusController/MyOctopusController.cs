@@ -107,15 +107,16 @@ namespace OctopusController
         #region private and internal methods
         //todo: add here anything that you need
 
-        //Aquesta funció retorna la descomposició del swing i twist del Quaternion rotation en un deteminat eix direction
-        void swing_twist_decomposition(Quaternion rotation, Vector3 direction, out Quaternion swing, out Quaternion twist)
+        //Returs the decomposed swing and twist of the quaternion rotation in a specific direction 
+        void decomposeSwingAndTwist(Quaternion rotation, Vector3 direction, out Quaternion swing, out Quaternion twist)
         {
-            //Calculem l'eix de rotació rotationAxis
+            //Calculate the rotation axis
             Vector3 rotationAxis = new Vector3(rotation.x, rotation.y, rotation.z);
-            //Calculem la projecció del vector de l'eix de rotacio rotationAxis al eix direction
+
+            //Calculate the projection of the axis rotation in the direction axis
             Vector3 pos = Vector3.Project(rotationAxis, direction);
 
-            //Descomposem el twist i el swing
+            //Decompose the twist and the swing
             twist = new Quaternion(pos.x, pos.y, pos.z, rotation.w);
             twist = twist.normalized;
             swing = rotation * Quaternion.Inverse(twist);
@@ -123,16 +124,16 @@ namespace OctopusController
 
         void update_ccd()
         {
-            //Recorrem tots els tentacles
+            //Loop through the tentacles
             for (int i = 0; i < _tentacles.Length; i++)
             {
-                //Ens guardem la posició del target
+                //Store target's position
                 Vector3 targetPosition = _randomTargets[i].position;
 
-                //Si el tentacle que estem recorrent és el que es troba la pilota i hem rebut el input de xutar
+                //If the current tentacle is in the same region as the ball and we recieved the shooting input
                 if (i == activatedTentacle && activateTentacle)
                 {
-                    //Posem que el target sigui on xutem la pilota
+                    //Set the target's position to the ball's target
                     targetPosition = Vector3.Lerp(_tentacles[i].EndEffector.position, _target.position, (Time.time - shotTime) / shotDuration);
                     if ((Time.time - shotTime) / shotDuration >= 1)
                     {
@@ -140,35 +141,34 @@ namespace OctopusController
                     }
                 }
 
-                //Reiniciem el CCD si encara no estem a la mateixa posició que el target
+                //Restart CCD if the tentacle is not in the same position as its target
                 if (_tentacles[i].TargetPositionCCD != targetPosition)
                 {
                     _tentacles[i].TargetPositionCCD = targetPosition;
                     _tentacles[i].CurrentTries = 0;
                 }
 
-                //Comprovem si la distància entre l'end effector i el target es es inferior a minDistance
-                //Si la distància és major que minDistance
-                if (!(Vector3.Distance(_tentacles[i].EndEffector.position, targetPosition) < minDistance))
+                //If the distance between the end effector and the tentacle's target is larger or equal to minDistance 
+                if (Vector3.Distance(_tentacles[i].EndEffector.position, targetPosition) >= minDistance)
                 {
                     if (_tentacles[i].CurrentTries <= maxTriesCCD)
                     {
                         for (int j = _tentacles[i].Joints.Length - 2; j >= 0; j--)
                         {
-                            //Vector desde la posició del current joint fins al end effector
+                            //Store distance between current joint and end effector
                             Vector3 currentJointToEnd = _tentacles[i].EndEffector.position - _tentacles[i].Joints[j].position;
-                            //Vector desde current joint fins al target
+                            //Store distance between current joint and target
                             Vector3 currentJointToTarget = targetPosition - _tentacles[i].Joints[j].position;
 
-                            //Eix de rotació
+                            //Store rotation axis
                             Vector3 rotationAxis = Vector3.Cross(currentJointToEnd, currentJointToTarget);
 
-                            //Comprovem que els vectors no siguin paral·lels o molt semblants
+                            //If the vectors ar not paralel or very similar
                             if (Vector3.Angle(currentJointToEnd, currentJointToTarget) < 175.0f)
                             {
                                 rotationAxis.Normalize();
 
-                                //Calculem l'angle desitjat
+                                //Calculate the desired angle
                                 if (currentJointToEnd.magnitude * currentJointToTarget.magnitude <= 0.001f)
                                     Debug.Log("ERROR");
                                 else
@@ -183,65 +183,63 @@ namespace OctopusController
                                 Quaternion swing, twist;
                                 Quaternion quat = Quaternion.AngleAxis(_tentacles[i].Theta[j], rotationAxis);
 
-                                //No apliquem constraints
                                 if (maxSwing > 45)
                                 {
                                     _tentacles[i].Joints[j].rotation = quat * _tentacles[i].Joints[j].rotation;
                                 }
-                                //Apliquem constraints
                                 else
                                 {
-                                    //Descomposem la rotació calculada
-                                    swing_twist_decomposition(quat, _tentacles[i].Joints[j].up, out swing, out twist);
+                                    //Decompose the calculated rotation
+                                    decomposeSwingAndTwist(quat, _tentacles[i].Joints[j].up, out swing, out twist);
 
-                                    //Si el current join té un parent (no és la base)
+                                    //If the current joint has a parent (ergo it's not the base)
                                     if (j != 0)
                                     {
-                                        ///CONSTRAINTS SWING
-                                        // Calculem la rotació que fariem sense restriccions
+                                        ///SWING
+                                        //Calculate the rotation without constraints
                                         Quaternion auxQuat = swing * _tentacles[i].Joints[j].rotation;
 
-                                        // Mirem l'angle entre aquesta rotació sense restriccions i la rotació del parent
+                                        //Get the angle between this rotation and the parent's rotation
                                         float angle = Quaternion.Angle(auxQuat, _tentacles[i].Joints[j - 1].rotation);
                                         if (angle < 1)
                                             angle = 1;
 
-                                        // Rotem el joint per facilitar trobar l'eix de rotació
+                                        //Rotate the joint to easily find the rotation axis
                                         _tentacles[i].Joints[j].rotation = swing * _tentacles[i].Joints[j].rotation;
                                         Vector3 auxAxis = Vector3.Cross(_tentacles[i].Joints[j - 1].up, _tentacles[i].Joints[j].up);
 
-                                        // Revertim la rotació anterior un cop hem guardat l'eix
+                                        //Go back to the previous rotation once we've stored the axis
                                         _tentacles[i].Joints[j].rotation = Quaternion.Inverse(swing) * _tentacles[i].Joints[j].rotation;
 
-                                        // Apliquem la restricció d'angle
+                                        //Apply constraints to the angle
                                         angle = Mathf.Clamp(angle, minSwing, maxSwing);
                                         Quaternion newSwing = Quaternion.AngleAxis(angle, auxAxis);
 
 
-                                        ///CONSTRAINTS TWIST
-                                        // Calculem la rotació que fariem sense restriccions
+                                        ///TWIST
+                                        //Calculate the rotation without constraints
                                         _tentacles[i].Joints[j].rotation = twist * _tentacles[i].Joints[j].rotation;
 
-                                        //Rotem fins a la rotació del parent i ens quedem només amb el swing
+                                        //Rotate until we get the parent's rotation and we store the swing
                                         float twistAngle = Vector3.Angle(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
                                         Vector3 twistAxis = Vector3.Cross(_tentacles[i].Joints[j].up, _tentacles[i].Joints[j - 1].up);
                                         Quaternion twistRotation = Quaternion.AngleAxis(twistAngle, twistAxis);
                                         Quaternion twistAuxQuat, swingAuxQuat;
-                                        swing_twist_decomposition(twistRotation, _tentacles[i].Joints[j - 1].up, out swingAuxQuat, out twistAuxQuat);
+                                        decomposeSwingAndTwist(twistRotation, _tentacles[i].Joints[j - 1].up, out swingAuxQuat, out twistAuxQuat);
                                         _tentacles[i].Joints[j].rotation = swingAuxQuat * _tentacles[i].Joints[j].rotation;
 
-                                        //Calculem l'angle entre els right
+                                        //Calculate the angle between the right vectors
                                         float rightAngle = Vector3.Angle(_tentacles[i].Joints[j].right, _tentacles[i].Joints[j - 1].right);
                                         if (rightAngle < 1)
                                             rightAngle = 1;
 
-                                        //Apliquem restricció d'angle
+                                        //Apply constraints to the angle
                                         rightAngle = Mathf.Clamp(rightAngle, minTwist, maxTwist);
 
-                                        //Revertir a la rotació original aplicant el nou twist
+                                        //Go back to the original rotation applying the new twist
                                         twistAuxQuat = Quaternion.AngleAxis(rightAngle, _tentacles[i].Joints[j - 1].up);
 
-                                        // Rotem el joint amb l'angle restringit respecte al seu parent
+                                        //Rotate the joint with the constrained angle in relation to its parent
                                         _tentacles[i].Joints[j].rotation = twistAuxQuat * newSwing * _tentacles[i].Joints[j - 1].rotation;
 
 

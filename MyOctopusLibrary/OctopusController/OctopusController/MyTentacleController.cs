@@ -52,6 +52,7 @@ namespace OctopusController
             switch (tentacleMode)
             {
                 case TentacleMode.LEG:
+                    //Store all the joints
                     current = current.GetChild(0).transform;
                     bones.Add(current);
                     while (current.childCount > 0)
@@ -62,6 +63,7 @@ namespace OctopusController
                     _endEffectorSphere = current;
                     _joints = bones.ToArray();
 
+                    //Set theta to 0
                     _base = _joints[0];
                     theta = new float[_joints.Length];
                     for (int i = 0; i < _joints.Length; i++)
@@ -69,6 +71,7 @@ namespace OctopusController
                     //TODO: in _endEffectorsphere you keep a reference to the base of the leg
                     break;
                 case TentacleMode.TAIL:
+                    //Store all the joints
                     bones.Add(current);
                     while (current.childCount > 0)
                     {
@@ -79,8 +82,10 @@ namespace OctopusController
                     _joints = bones.ToArray();
                     _base = _joints[0];
 
+                    //Set rotation axis
                     SetAxis();
 
+                    //Store initial rotation and rotate the joints to angle 0
                     theta = new float[_joints.Length];
                     initRotation = new Vector3[_joints.Length];
                     for (int i = 0; i < theta.Length; i++)
@@ -90,10 +95,12 @@ namespace OctopusController
                         SetDefaultAngle(theta[i], i);
                     }
 
+                    //Store the start offset
                     startOffset = new Vector3[_joints.Length];
                     for (int i = 1; i < startOffset.Length; i++)
                         startOffset[i] = _joints[i].position - _joints[i - 1].position;
 
+                    //Rotate the joints to initial rotation
                     for (int i = 0; i < theta.Length; i++)
                     {
                         if (axis[i] == Vector3.forward)
@@ -109,6 +116,7 @@ namespace OctopusController
                     //TODO: in _endEffectorsphere you keep a reference to the red sphere 
                     break;
                 case TentacleMode.TENTACLE:
+                    //Store all the joints
                     current = current.GetChild(0).transform;
                     while (current.childCount > 0)
                     {
@@ -118,6 +126,7 @@ namespace OctopusController
                     _endEffectorSphere = current;
                     _joints = bones.ToArray();
 
+                    //Set theta to 0
                     _base = _joints[0];
                     theta = new float[_joints.Length];
                     for (int i = 0; i < _joints.Length; i++)
